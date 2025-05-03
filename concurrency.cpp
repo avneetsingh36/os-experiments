@@ -1,10 +1,10 @@
+#include <atomic>
 #include <chrono>
 #include <iostream>
-#include <mutex>
 #include <thread>
 
 int counter1{0};
-int counter2{0};
+std::atomic<int> counter2{0};
 
 std::mutex mtx;
 
@@ -27,11 +27,9 @@ void increment_counter(int number_increments) {
 }
 
 void threaded_counter(int number_increments) {
-  for (int i = 0; i < number_increments; ++i) {
-    mtx.lock();
-    ++counter2;
-    mtx.unlock();
-  }
+  int local = 0;
+  for (int i = 0; i < number_increments; ++i) local++;
+  counter2.fetch_add(local, std::memory_order_relaxed);
 }
 
 long long p1(int cycles) {
@@ -39,7 +37,17 @@ long long p1(int cycles) {
 }
 
 long long p2(int cycles) {
-  return measure_us([cycles] { threaded_counter(cycles); });
+  return measure_us([cycles] {
+    int half = cycles / 4;
+    std::thread t1(threaded_counter, half);
+    std::thread t2(threaded_counter, half);
+    std::thread t3(threaded_counter, half);
+    std::thread t4(threaded_counter, half);
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+  });
 }
 
 int main(int argc, char const* argv[]) {

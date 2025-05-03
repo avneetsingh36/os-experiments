@@ -8,4 +8,20 @@ Using my experiment, I found that cache access was about 5x faster - I tested th
 
 ### Single vs Multithreaded using C++ | concurrency.cpp
 
-Want to see after how many operations is it actually beneficial to use multithreading over single threaded. I wanted to explore to see if there's a trade off from overhead of locking (through a mutex) the shared memory buffer (counter) that is being updated or not when theres a lot of processes. I want to understand the tradeoffs of multithreading and see when it can truly be useful.
+**Goal**  
+Find out after how many increments multithreading (4 threads + one atomic add per thread) actually outperforms a single-threaded loop.
+
+**Key Results**
+
+| Total Increments | Single-thread (µs) | 4-threaded (µs) |
+|-----------------:|-------------------:|----------------:|
+| 10⁵              | 249                | 555             |
+| 10⁶              | 958                | 991             |
+| 10⁷              | 16 195             | 3 572           |
+| 10⁸              | 100 519            | 20 793          |
+
+**Takeaways**  
+- **Overhead dominates** for small N (multithread > single).  
+- **Break-even** at around ~10⁶–10⁷ iterations.  
+- **Clear win** beyond ~10⁷ increments, as work amortizes thread and atomic costs.  
+- For a perfectly fair comparison, pre-spawn threads or align thread-count with `hardware_concurrency()`.  
