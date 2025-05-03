@@ -6,6 +6,8 @@
 int counter1{0};
 int counter2{0};
 
+std::mutex mtx;
+
 template <typename F>
 long long measure_us(F&& fn) {
   using Clock = std::chrono::steady_clock;
@@ -24,7 +26,13 @@ void increment_counter(int number_increments) {
   }
 }
 
-void threaded_counter(int cycles) {}
+void threaded_counter(int number_increments) {
+  for (int i = 0; i < number_increments; ++i) {
+    mtx.lock();
+    ++counter2;
+    mtx.unlock();
+  }
+}
 
 long long p1(int cycles) {
   return measure_us([cycles] { increment_counter(cycles); });
