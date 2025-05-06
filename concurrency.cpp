@@ -3,7 +3,7 @@
 #include <iostream>
 #include <thread>
 
-int counter1{0};
+std::atomic<int> counter1{0};
 std::atomic<int> counter2{0};
 
 std::mutex mtx;
@@ -22,7 +22,7 @@ long long measure_us(F&& fn) {
 
 void increment_counter(int number_increments) {
   for (int i = 0; i < number_increments; ++i) {
-    ++counter1;
+    counter1.fetch_add(1, std::memory_order_relaxed);
   }
 }
 
