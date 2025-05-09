@@ -25,3 +25,24 @@ Find out after how many increments multithreading (4 threads + one atomic add pe
 - **Break-even** at around ~10⁶–10⁷ iterations.  
 - **Clear win** beyond ~10⁷ increments, as work amortizes thread and atomic costs.  
 - For a perfectly fair comparison, pre-spawn threads or align thread-count with `hardware_concurrency()`.  
+
+### Race Condition with Non-Atomic Counter | mem.cpp
+
+**Goal**  
+Show how two threads incrementing a shared non-atomic counter lose updates due to data races.
+
+**Results**
+
+| Cycles per Thread | Expected Total | Observed Total |
+|------------------:|---------------:|---------------:|
+| 10²               | 200            | 200            |
+| 10³               | 2 000          | 2 000          |
+| 10⁴               | 20 000         | 20 000         |
+| 10⁵               | 200 000        | 127 858        |
+| 10⁶               | 2 000 000      | 1 018 846      |
+
+**Takeaways**  
+- For small N, the race rarely manifests—both threads see most increments.  
+- Past ~10⁵ increments, lost updates spike (≈36% lost at 10⁵, ≈49% at 10⁶).  
+- To avoid this, use `std::atomic<int>` or synchronize access (e.g., a mutex), so increments become thread-safe.
+
