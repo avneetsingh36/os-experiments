@@ -30,7 +30,7 @@ int main() {
       std::perror("waitpid");
     }
 
-    std::cout << "Hello from the parent process with PID: " << pid << '\n';
+    std::cout << "Hello from the parent process with PID: " << getpid() << '\n';
     std::cout << "My number is from the parent process is: " << myNumber
               << '\n';
   }
